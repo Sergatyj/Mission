@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мистический Нумеролог</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1b26; /* Темно-фиолетово-синий */
+            color: #c0c0c0; /* Серебристый текст */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(128, 0, 128, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(75, 0, 130, 0.1) 0%, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233a3a52' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .title-font {
+            font-family: 'Cinzel Decorative', cursive;
+        }
+        .rune-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .rune {
+            position: absolute;
+            font-size: 3rem;
+            color: rgba(192, 192, 192, 0.05); /* Очень бледные руны */
+            user-select: none;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #2c2c3e; 
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: #c0c0c0;
+        }
+        .modal-header {
+            padding: 10px 16px;
+            background-color: #4a044e; 
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body {padding: 16px;}
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: white;
+            text-decoration: none;
+        }
+        .loader {
+            border: 5px solid #4a044e; 
+            border-top: 5px solid #c0c0c0; 
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea {
+            width: 100%;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8); 
+        }
+        .mystical-tool-card {
+            background-color: rgba(44, 44, 62, 0.7); /* Немного другой оттенок для карточек */
+            backdrop-filter: blur(5px);
+            border: 1px solid #5d3a9b; /* Более яркая фиолетовая граница */
+        }
+    </style>
+</head>
+<body>
+    <div class="rune-bg" id="runeBg"></div>
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl w-full z-10">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-bold title-font text-purple-300">Мистический Нумеролог</h1>
+            <p class="text-lg text-purple-200 mt-2">Узнайте тайны своей судьбы</p>
+        </header>
+
+        <main>
+            <form id="numerologyForm" class="bg-gray-800 bg-opacity-70 shadow-2xl rounded-xl p-6 sm:p-8 space-y-6 backdrop-blur-sm border border-purple-500">
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-purple-300 mb-1">Номер телефона:</label>
+                    <input type="tel" id="phone" name="phone" required
+                           class="mt-1 block w-full bg-gray-700 border-gray-600 text-gray-200 rounded-lg shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 p-3">
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-purple-300 mb-1">Email:</label>
+                    <input type="email" id="email" name="email" required
+                           class="mt-1 block w-full bg-gray-700 border-gray-600 text-gray-200 rounded-lg shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 p-3">
+                </div>
+
+                <div>
+                    <label for="birthDate" class="block text-sm font-medium text-purple-300 mb-1">Дата рождения:</label>
+                    <input type="date" id="birthDate" name="birthDate" required
+                           class="mt-1 block w-full bg-gray-700 border-gray-600 text-gray-200 rounded-lg shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 p-3">
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                    Получить Нумерологический Расклад
+                </button>
+            </form>
+
+            <div id="loadingIndicator" class="text-center py-6 hidden">
+                <div class="loader"></div>
+                <p class="text-purple-300 text-lg">Магия чисел творится... Пожалуйста, подождите.</p>
+            </div>
+            
+            <div id="errorMessage" class="mt-6 p-4 bg-red-800 bg-opacity-70 text-red-200 rounded-lg hidden backdrop-blur-sm border border-red-600">
+                <!-- Сообщение об ошибке будет здесь -->
+            </div>
+
+            <div id="resultArea" class="mt-8 bg-gray-800 bg-opacity-70 shadow-2xl rounded-xl p-6 sm:p-8 hidden backdrop-blur-sm border border-purple-500">
+                <h2 class="text-2xl sm:text-3xl font-bold title-font text-purple-300 mb-4">Ваш Нумерологический Расклад:</h2>
+                <div id="numerologyText" class="text-gray-300 space-y-3 whitespace-pre-wrap">
+                    <!-- Результат нумерологии будет здесь -->
+                </div>
+            </div>
+
+            <!-- Секция с дополнительными мистическими инструментами -->
+            <section id="additionalTools" class="mt-10 space-y-8">
+                <h2 class="text-3xl title-font text-purple-300 text-center mb-6">Дополнительные Мистические Инструменты</h2>
+
+                <!-- Руна Дня -->
+                <div class="mystical-tool-card shadow-2xl rounded-xl p-6 sm:p-8">
+                    <h3 class="text-2xl font-bold title-font text-purple-200 mb-4">✨ Руна Дня ✨</h3>
+                    <button id="getRuneOfTheDay" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75">
+                        Узнать Руну Дня
+                    </button>
+                    <div id="runeLoadingIndicator" class="text-center py-4 hidden">
+                        <div class="loader"></div>
+                        <p class="text-teal-300">Руны шепчут...</p>
+                    </div>
+                    <div id="runeError" class="mt-4 p-3 bg-red-800 bg-opacity-70 text-red-200 rounded-lg hidden backdrop-blur-sm border border-red-600"></div>
+                    <div id="runeResult" class="mt-4 text-gray-300 space-y-2 whitespace-pre-wrap">
+                        <!-- Результат руны дня -->
+                    </div>
+                </div>
+
+                <!-- Сонник -->
+                <div class="mystical-tool-card shadow-2xl rounded-xl p-6 sm:p-8">
+                    <h3 class="text-2xl font-bold title-font text-purple-200 mb-4">✨ Сонник ✨</h3>
+                    <div>
+                        <label for="dreamDescription" class="block text-sm font-medium text-purple-300 mb-1">Опишите ваш сон:</label>
+                        <textarea id="dreamDescription" name="dreamDescription" rows="4"
+                                  class="mt-1 block w-full bg-gray-700 border-gray-600 text-gray-200 rounded-lg shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 p-3"
+                                  placeholder="Например: Мне приснилось, что я летаю над городом..."></textarea>
+                    </div>
+                    <button id="interpretDream" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                        Растолковать Сон
+                    </button>
+                    <div id="dreamLoadingIndicator" class="text-center py-4 hidden">
+                        <div class="loader"></div>
+                        <p class="text-indigo-300">Оракул погружается в сновидения...</p>
+                    </div>
+                    <div id="dreamError" class="mt-4 p-3 bg-red-800 bg-opacity-70 text-red-200 rounded-lg hidden backdrop-blur-sm border border-red-600"></div>
+                    <div id="dreamResult" class="mt-4 text-gray-300 space-y-2 whitespace-pre-wrap">
+                        <!-- Результат толкования сна -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 pb-4">
+            <p class="text-sm text-gray-500">&copy; <span id="currentYear"></span> Мистический Нумеролог. Все права защищены рунами.</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно для сообщений -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Сообщение</h2>
+                <span class="close-button" id="closeModalButton">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Установка текущего года в футере
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // --- Генерация случайных рун для фона ---
+        const runeBg = document.getElementById('runeBg');
+        const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+        const numRunes = 50; 
+
+        function createRunes() {
+            runeBg.innerHTML = ''; 
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            for (let i = 0; i < numRunes; i++) {
+                const runeChar = runes[Math.floor(Math.random() * runes.length)];
+                const runeEl = document.createElement('div');
+                runeEl.classList.add('rune');
+                runeEl.textContent = runeChar;
+                runeEl.style.left = `${Math.random() * viewportWidth}px`;
+                runeEl.style.top = `${Math.random() * viewportHeight}px`;
+                runeEl.style.fontSize = `${Math.random() * 2 + 1}rem`; 
+                runeEl.style.opacity = (Math.random() * 0.05 + 0.02).toFixed(2); 
+                runeBg.appendChild(runeEl);
+            }
+        }
+        createRunes();
+        window.addEventListener('resize', createRunes); 
+
+        // --- Элементы DOM для нумерологии ---
+        const numerologyForm = document.getElementById('numerologyForm');
+        const loadingIndicator = document.getElementById('loadingIndicator'); // Главный индикатор для нумерологии
+        const resultArea = document.getElementById('resultArea');       // Контейнер для результатов нумерологии
+        const numerologyText = document.getElementById('numerologyText'); // Текст нумерологии
+        const errorMessageDiv = document.getElementById('errorMessage');  // Ошибки нумерологии
+
+        // --- Элементы DOM для Руны Дня ---
+        const getRuneButton = document.getElementById('getRuneOfTheDay');
+        const runeLoadingIndicator = document.getElementById('runeLoadingIndicator');
+        const runeErrorDiv = document.getElementById('runeError');
+        const runeResultDiv = document.getElementById('runeResult');
+
+        // --- Элементы DOM для Сонника ---
+        const interpretDreamButton = document.getElementById('interpretDream');
+        const dreamDescriptionTextarea = document.getElementById('dreamDescription');
+        const dreamLoadingIndicator = document.getElementById('dreamLoadingIndicator');
+        const dreamErrorDiv = document.getElementById('dreamError');
+        const dreamResultDiv = document.getElementById('dreamResult');
+        
+        // --- Элементы модального окна ---
+        const modal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModalButton = document.getElementById('closeModalButton');
+
+        // Функция для отображения модального окна
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.style.display = 'block';
+        }
+
+        // Закрытие модального окна
+        closeModalButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Общая функция для вызова Gemini API
+        async function callGeminiAPI(prompt, loadingElement, resultElement, errorElement) {
+            loadingElement.classList.remove('hidden');
+            resultElement.classList.add('hidden');     // Скрыть предыдущий результат
+            resultElement.textContent = '';            // Очистить текст предыдущего результата
+            errorElement.classList.add('hidden');      // Скрыть предыдущую ошибку
+            errorElement.textContent = '';             // Очистить текст предыдущей ошибки
+
+            try {
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                // ВАЖНО: Вставьте свой API-ключ сюда
+                const apiKey = "AIzaSyDscD04TumSAZtOOpyQwuRms7ZVzVHCwcY"; 
+                
+                if (apiKey === "AIzaSyDscD04TumSAZtOOpyQwuRms7ZVzVHCwcY" || !apiKey) {
+                    throw new Error("Ключ API не был вставлен в код. Пожалуйста, добавьте его.");
+                }
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Error:', errorData);
+                    const message = errorData.error?.message || JSON.stringify(errorData);
+                    throw new Error(`Ошибка ответа сети: ${response.statusText}. Детали: ${message}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    resultElement.textContent = text;
+                    resultElement.classList.remove('hidden'); // Показать элемент с результатом
+                    return true; // Успех
+                } else {
+                    console.error('Unexpected API response structure:', result);
+                    throw new Error('Не удалось получить ответ от оракула. Структура ответа API неверна.');
+                }
+            } catch (error) {
+                console.error('Ошибка при вызове API:', error);
+                errorElement.textContent = `Произошла ошибка: ${error.message}. Попробуйте еще раз.`;
+                errorElement.classList.remove('hidden'); // Показать элемент с ошибкой
+                return false; // Неудача
+            } finally {
+                loadingElement.classList.add('hidden'); // Скрыть индикатор загрузки в любом случае
+            }
+        }
+
+        // --- Логика формы нумерологии ---
+        numerologyForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const birthDate = document.getElementById('birthDate').value;
+
+            if (!phone || !email || !birthDate) {
+                showModal('Ошибка ввода', 'Пожалуйста, заполните все поля для нумерологического расклада.');
+                return;
+            }
+            if (new Date(birthDate) > new Date()) { // Проверка, что дата рождения не в будущем
+                 showModal('Ошибка ввода', 'Дата рождения не может быть в будущем.');
+                 return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+            numerologyText.textContent = '';
+            errorMessageDiv.classList.add('hidden');
+            runeResultDiv.classList.add('hidden');
+            runeResultDiv.textContent = '';
+            runeErrorDiv.classList.add('hidden');
+            dreamResultDiv.classList.add('hidden');
+            dreamResultDiv.textContent = '';
+            dreamErrorDiv.classList.add('hidden');
+
+            const numerologyPrompt = `Ты - Мастер Нумерологии с глубокими знаниями древних рун и мистических искусств.
+Клиент предоставил свою дату рождения: ${birthDate}.
+Пожалуйста, проведи полный нумерологический расклад. Ответ должен быть структурирован и включать следующие разделы:
+1.  **Предназначение Человека:** Какова его главная жизненная цель и духовный путь, исходя из чисел его рождения?
+2.  **Жизненная Миссия:** Какие уникальные таланты и задачи ему предстоит реализовать в этом воплощении?
+3.  **Сфера Быстрых и Больших Денег:** В каких областях деятельности или типах проектов этого человека ожидает наибольший финансовый успех и быстрое процветание? Дай конкретные примеры или направления.
+Твой ответ должен быть:
+- Подробным и глубоким.
+- Вдохновляющим и позитивным, но честным.
+- Написан в мистическом, немного загадочном стиле, с использованием метафор, связанных с древними знаниями, звездами, рунами или природой.
+- Избегай упоминания конкретных имен божеств или строго религиозных концепций, придерживайся универсальной духовности и нумерологии.
+- Представь информацию так, как будто ты проводишь личную консультацию, обращаясь к человеку на "ты".
+- Убедись, что ответ легко читается и хорошо отформатирован (например, используй абзацы для разделения мыслей).`;
+            
+            const success = await callGeminiAPI(numerologyPrompt, loadingIndicator, numerologyText, errorMessageDiv);
+
+            if (success) {
+                 resultArea.classList.remove('hidden');
+            }
+        });
+
+        // --- Логика для "Руны Дня" ---
+        getRuneButton.addEventListener('click', async function() {
+            const today = new Date().toLocaleDateString('ru-RU');
+            const runePrompt = `Ты - Хранитель Древних Рун. Сегодня ${today}. Какая руна покровительствует этому дню? Опиши ее значение и дай краткий совет или предсказание на день, связанное с этой руной. Ответ должен быть мистическим, кратким и вдохновляющим.`;
+            
+            numerologyText.textContent = '';
+            resultArea.classList.add('hidden');
+            errorMessageDiv.classList.add('hidden');
+            dreamResultDiv.classList.add('hidden');
+            dreamResultDiv.textContent = '';
+            dreamErrorDiv.classList.add('hidden');
+
+            await callGeminiAPI(runePrompt, runeLoadingIndicator, runeResultDiv, runeErrorDiv);
+        });
+
+        // --- Логика для "Сонника" ---
+        interpretDreamButton.addEventListener('click', async function() {
+            const dreamDescription = document.getElementById('dreamDescription').value;
+            if (!dreamDescription.trim()) {
+                showModal('Ошибка ввода', 'Пожалуйста, опишите ваш сон для толкования.');
+                return;
+            }
+
+            const dreamPrompt = `Ты - Оракул Сновидений, проникающий в тайны подсознания. Человек увидел следующий сон: "${dreamDescription}". Растолкуй этот сон. Что он может означать? Какие символы в нем ключевые? Дай совет, как отнестись к этому сновидению. Твой ответ должен быть глубоким, загадочным, уважительным к переживаниям сновидца и представлен в мистическом стиле.`;
+            
+            numerologyText.textContent = '';
+            resultArea.classList.add('hidden');
+            errorMessageDiv.classList.add('hidden');
+            runeResultDiv.classList.add('hidden');
+            runeResultDiv.textContent = '';
+            runeErrorDiv.classList.add('hidden');
+
+            await callGeminiAPI(dreamPrompt, dreamLoadingIndicator, dreamResultDiv, dreamErrorDiv);
+        });
+
+    </script>
+</body>
+</html>
